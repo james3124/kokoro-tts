@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: kokoro-tts
+    runtime: python
+    buildCommand: >-
+      apt-get install -y espeak-ng &&
+      pip install -r requirements.txt &&
+      python warmup.py
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1
+    plan: free
+    envVars:
+      - key: HF_HOME
+        value: ./hf_cache
+      - key: DEFAULT_VOICE
+        value: af_heart       # Change this to swap default voice
+      - key: LANG_CODE
+        value: a              # a=American EN, b=British EN, e=Spanish, f=French, etc.
+      - key: SUPABASE_BUCKET
+        value: audio
+      - key: SUPABASE_URL
+        sync: false           # Set in Render dashboard
+      - key: SUPABASE_KEY
+        sync: false           # Set in Render dashboard
+      - key: PYTHONUNBUFFERED
+        value: "1"
