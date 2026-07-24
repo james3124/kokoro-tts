@@ -1,5 +1,10 @@
-import os
+import os, gc
 os.environ.setdefault("HF_HOME", "./hf_cache")
+
+# ── Memory optimizations (must be before torch import) ────────────────────────
+import torch
+torch.set_num_threads(1)          # less thread overhead
+torch.set_grad_enabled(False)     # no autograd = less RAM
 
 import io
 import uuid
@@ -75,6 +80,7 @@ async def lifespan(app: FastAPI):
 
     # Pre-load default language pipeline at startup
     get_pipeline(DEFAULT_LANG)
+    gc.collect()  # free any loader residue
     logger.info(f"🚀 Ready — default voice: {DEFAULT_VOICE}, lang: {DEFAULT_LANG}")
 
     yield
@@ -237,3 +243,4 @@ async def languages():
         "available": LANG_MAP,
         "note": "Japanese (j) and Mandarin (z) require extra pip deps — see README",
     }
+        
